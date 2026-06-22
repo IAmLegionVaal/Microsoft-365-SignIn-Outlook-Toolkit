@@ -81,6 +81,12 @@ Launch_Outlook_Repair_Toolkit.bat
 - `-DryRun` previews the workflow without making changes.
 - Administrative repairs are skipped with a warning when the script is not elevated.
 
+## Validation status
+
+This toolkit has been tested successfully by the author on his own Windows machines using classic Outlook and Microsoft 365. The documented diagnostic, backup and repair workflows completed as intended in those environments.
+
+Results may vary with the Windows and Office build, Outlook profile type, Exchange or Microsoft 365 tenant configuration, add-ins, permissions, security policy, network conditions and user-specific profile data. Successful author testing does not guarantee identical behaviour in every environment, so use `-DryRun` and validate on a non-critical profile when introducing the toolkit to a new configuration.
+
 ## Author
 
 Dewald Pretorius — L2 IT Support Engineer
