@@ -1,5 +1,5 @@
 #requires -Version 5.1
-<#!
+<#
 .SYNOPSIS
     Guarded Microsoft Outlook repair toolkit.
 .DESCRIPTION
@@ -30,7 +30,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ScriptVersion = '2.0.0'
+$ScriptVersion = '2.0.1'
 $RunStamp = Get-Date -Format 'yyyyMMdd_HHmmss'
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
@@ -125,8 +125,8 @@ function Get-OutlookSnapshot {
         Generated = (Get-Date).ToString('o')
         Computer = $env:COMPUTERNAME
         User = "$env:USERDOMAIN\$env:USERNAME"
-        IsAdministrator = Test-IsAdministrator
-        OutlookPath = Get-OutlookPath
+        IsAdministrator = (Test-IsAdministrator)
+        OutlookPath = (Get-OutlookPath)
         OutlookProcesses = @(
             Get-Process OUTLOOK -ErrorAction SilentlyContinue |
                 Select-Object Id, ProcessName, Path, StartTime
@@ -143,7 +143,7 @@ function Get-OutlookSnapshot {
             Get-ChildItem -LiteralPath $outlookData -Filter '*.pst' -File -ErrorAction SilentlyContinue |
                 Select-Object FullName, Length, LastWriteTime
         )
-        RoamCacheExists = Test-Path -LiteralPath $roamCache
+        RoamCacheExists = (Test-Path -LiteralPath $roamCache)
         UserAddIns = @(
             Get-ChildItem -LiteralPath $addInPath -ErrorAction SilentlyContinue | ForEach-Object {
                 $item = Get-ItemProperty -LiteralPath $_.PSPath -ErrorAction SilentlyContinue
@@ -422,7 +422,8 @@ $repairSwitches = @(
 )
 
 try {
-    if (-not ($repairSwitches -contains $true)) {
+    $hasSelectedRepair = @($repairSwitches | Where-Object { $_.IsPresent }).Count -gt 0
+    if (-not $hasSelectedRepair) {
         Show-Menu
     } else {
         if ($RepairAllSafe)         { Invoke-AllSafeRepairs }
@@ -440,9 +441,8 @@ try {
     }
 } catch {
     Write-Log $_.Exception.Message 'ERROR'
-    $global:LASTEXITCODE = 1
 } finally {
-    Get-OutlookSnapshot -Stage 'After'
+    try { Get-OutlookSnapshot -Stage 'After' } catch { Write-Log "Could not save final snapshot: $($_.Exception.Message)" 'WARN' }
     Write-Log "Repair workflow finished. Backups: $BackupRoot" 'SUCCESS'
     Write-Host "Logs and backups: $OutputPath" -ForegroundColor Green
 }
